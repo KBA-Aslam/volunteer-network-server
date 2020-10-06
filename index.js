@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const MongoClient = require('mongodb').MongoClient;
 require('dotenv').config()
+const {ObjectId} = require('mongodb')
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hqma3.mongodb.net/volunteerNetwork?retryWrites=true&w=majority`;
@@ -46,21 +47,22 @@ client.connect(err => {
       registryCollection.insertOne(registry)
       .then(result => {
           res.send(result.insertedCount > 0)
+          console.log(result)
       })
     })
 
     app.get('/review', (req, res) => {
-      registryCollection.find({email: req.query.email})
+      serviceCollection.find({email: req.query.email})
       .toArray((err, documents)=> {
         res.send(documents)
     })
   })
 
     app.delete(`/delete/:id`, (req, res) => {
+      console.log(req.params.id)
       registryCollection.deleteOne({ _id: ObjectId(req.params.id) })
         .then(result => {
-          res.send(result.deletedCount>0)
-          console.log('deleted successfully')
+          res.send(result)
         })
     })
 
@@ -70,6 +72,16 @@ client.connect(err => {
           res.send(documents);
         })
     })
+
+    app.post('/event', (req, res) => {
+      const newEvent = req.body
+      serviceCollection.insertOne(newEvent)
+        .then(result => {
+          if (result.insertedCount > 0) {
+            res.send(result)
+          }
+        })
+      })
 
 });
 
